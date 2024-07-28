@@ -1,11 +1,21 @@
 import socket
 
-s=socket.socket(socket.AF_INET,socket.SOCK_STREAM) #AF stands for address family so here we are dealing with ipv4
-s.bind((socket.gethostname(),1234))
-s.listen(5)
+port = 1234
+with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as s:
+  s.bind((socket.gethostname(),port))
+  s.listen()
+  print(f'Listening on port {port}')
+  
+  clientSocket, address = s.accept()
+  
+  with clientSocket:
+    print(f"All is good with {address}")
 
-while True:
-  clientSocket ,address =s.accept()
-  print(f"All is good with{address}")
-  clientSocket.send(bytes("Hey there!!!","utf-8"))
-  clientSocket.close()
+    while True:
+      data = clientSocket.recv(1024)
+      if not data: 
+        break
+      print(f'client: {data.decode()}')
+      resp = input('server: ')
+      clientSocket.sendall(resp.encode())
+
