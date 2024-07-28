@@ -9,7 +9,7 @@ with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as s:
   clientSocket, address = s.accept()
   
   with clientSocket:
-    print(f"All is good with {address}")
+    print(f"{address} connected")
 
     while True:
       data = clientSocket.recv(1024)
