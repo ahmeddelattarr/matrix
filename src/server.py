@@ -19,7 +19,8 @@ with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as s:
         print(f'client: {data.decode()}')
         resp = input('server: ')
         clientSocket.sendall(resp.encode())
-  except:
-    print("Server shuted down")
+
+  except ConnectionError as e :
+    print(f"connection error occured :{e}")
 
 
