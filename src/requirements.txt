@@ -1,1 +1,4 @@
 socket
+ssl
+os
+subprocess
