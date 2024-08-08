@@ -1,4 +1,4 @@
-import socket
+import asyncio
 import ssl
 import os
 import subprocess
@@ -26,26 +26,40 @@ generate_ssl_cert(cert_path, key_path, config_path)
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.load_cert_chain(certfile=cert_path, keyfile=key_path)
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind(('localhost', 1234))
-    s.listen(5)
-    print("Server is listening on port 1234...")
-    
-    with context.wrap_socket(s, server_side=True) as ssock:
-        conn, addr = ssock.accept()
-        print(f"Connection from {addr} has been established!")
-        with conn:
-            try:
-                while True:
-                    data = conn.recv(1024)
-                    if not data:
-                        print("Connection closed by client")
-                        break
-                    print(f'client: {data.decode()}')
-                    resp = input('server: ')
-                    conn.sendall(resp.encode())
+clients = []
+client_counter = 1
 
-            except ConnectionError as e:
-                print(f"Connection error occurred: {e}")
+async def handle_client(reader, writer):
+    global client_counter
+    client_id = client_counter
+    client_counter += 1
+    clients.append((reader, writer))
+    addr = writer.get_extra_info('peername')
+    print(f"Connection from {addr} has been established as client{client_id}!")
 
-            print("Server is shut down")
+    try:
+        while True:
+            data = await reader.read(1024)
+            if data==b'':
+                print(f"Connection closed by client{client_id}")
+                break
+            print(f'client{client_id}: {data.decode()}')
+
+            writer.write(data)
+            await writer.drain()
+    except ConnectionError as e:
+        print(f"Connection error occurred: {e}")
+    finally:
+        writer.close()
+        await writer.wait_closed()
+        clients.remove((reader, writer))
+        print(f"Connection with client{client_id} closed")
+
+async def main():
+    server = await asyncio.start_server(handle_client, 'localhost', 1234, ssl=context)
+    async with server:
+        print("Server is listening on port 1234...")
+        await server.serve_forever()
+
+if __name__ == "__main__":
+    asyncio.run(main())
