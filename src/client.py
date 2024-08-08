@@ -19,7 +19,7 @@ async def client():
             if not data:
                 print('Connection closed by server')
                 break
-            print(f'server: {data.decode()}')
+            print(f'server recieved : {data.decode()}')
     except ConnectionError as e:
         print(f"Connection error occurred: {e}")
     finally:

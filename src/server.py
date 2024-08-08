@@ -36,14 +36,17 @@ async def handle_client(reader, writer):
     clients.append((reader, writer))
     addr = writer.get_extra_info('peername')
     print(f"Connection from {addr} has been established as client{client_id}!")
-    
+
     try:
         while True:
             data = await reader.read(1024)
-            if not data:
+            if data==b'':
                 print(f"Connection closed by client{client_id}")
                 break
             print(f'client{client_id}: {data.decode()}')
+
+            writer.write(data)
+            await writer.drain()
     except ConnectionError as e:
         print(f"Connection error occurred: {e}")
     finally:
