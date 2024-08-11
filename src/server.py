@@ -31,22 +31,17 @@ context.load_cert_chain(certfile=cert_path, keyfile=key_path)
 clients = []
 client_counter = 1
 
-async def generate_jwt_key():
-    secret_key = os.urandom(32).hex()
-    return secret_key
+SECRET_KEY = os.urandom(32)  # Generate once at startup
 
-async def generate_token (client_counter):
-    secret_key= await generate_jwt_key
-
-    token= jwt.encode(
+def generate_token(client_counter):
+    token = jwt.encode(
         {
-            "user_id" :client_counter,
+            "user_id": client_counter,
             "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
         },
-        secret_key,
+        SECRET_KEY,
         algorithm="HS256"
     )
-
     return token
 
 async def handle_client(reader, writer):
