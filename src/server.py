@@ -2,6 +2,8 @@ import asyncio
 import ssl
 import os
 import subprocess
+import jwt
+import datetime
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 cert_path = os.path.join(current_dir, 'ssl/cert.pem')
@@ -29,6 +31,24 @@ context.load_cert_chain(certfile=cert_path, keyfile=key_path)
 clients = []
 client_counter = 1
 
+async def generate_jwt_key():
+    secret_key = os.urandom(32).hex()
+    return secret_key
+
+async def generate_token (client_counter):
+    secret_key= await generate_jwt_key
+
+    token= jwt.encode(
+        {
+            "user_id" :client_counter,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        },
+        secret_key,
+        algorithm="HS256"
+    )
+
+    return token
+
 async def handle_client(reader, writer):
     global client_counter
     client_id = client_counter
@@ -38,6 +58,10 @@ async def handle_client(reader, writer):
     print(f"Connection from {addr} has been established as client{client_id}!")
 
     try:
+        token = await generate_token(client_id)
+        print(f"Generated JWT for client{client_id}: {token}")
+
+
         while True:
             data = await reader.read(1024)
             if data==b'':
