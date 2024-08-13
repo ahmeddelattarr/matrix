@@ -33,7 +33,7 @@ client_counter = 1
 
 SECRET_KEY = os.urandom(32)  # Generate once at startup
 
-def generate_token(client_counter):
+async def generate_token(client_counter):
     token = jwt.encode(
         {
             "user_id": client_counter,
@@ -43,6 +43,7 @@ def generate_token(client_counter):
         algorithm="HS256"
     )
     return token
+
 
 async def handle_client(reader, writer):
     global client_counter
@@ -55,6 +56,8 @@ async def handle_client(reader, writer):
     try:
         token = await generate_token(client_id)
         print(f"Generated JWT for client{client_id}: {token}")
+        writer.write(f"your token :{token}\n".encode())
+        await writer.drain()
 
 
         while True:
@@ -64,8 +67,8 @@ async def handle_client(reader, writer):
                 break
             print(f'client{client_id}: {data.decode()}')
 
-            writer.write(data)
-            await writer.drain()
+            received_token=data.decode().strip()
+
     except ConnectionError as e:
         print(f"Connection error occurred: {e}")
     finally:
@@ -82,3 +85,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+
+
