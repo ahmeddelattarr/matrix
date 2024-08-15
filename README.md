@@ -21,3 +21,40 @@ src/
 - **`openssl.cnf`**: Configuration file for OpenSSL, used during the generation of the SSL certificate.
 - **`requirements.txt`**: List of all the dependencies required for the project.
 - **`server.py`**: Server code that handles client connections, issues JWT tokens, and verifies them.
+
+## Install Dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Requirements
+
+- Python 3.8+
+- The following Python libraries (installed via `requirements.txt`):
+  - `asyncio`
+  - `ssl`
+  - `os`
+  - `subprocess`
+  - `pyjwt`
+
+## Usage
+
+### Server
+
+To start the server, run:
+
+```bash
+python server.py
+```
+
+
+### Client
+
+To start the client, run:
+
+```bash
+python client.py
+```
+
+The client will connect to the server over SSL, receive a JWT token, and then send messages to the server. The server will verify the JWT token with each message.
