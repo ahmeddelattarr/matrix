@@ -13,6 +13,7 @@ src/
 ├── client.py
 ├── openssl.cnf
 ├── requirements.txt
+├── dbConnection.py
 └── server.py
 ```
 
@@ -20,12 +21,20 @@ src/
 - **`client.py`**: asyncio-based client.
 - **`openssl.cnf`**: Configuration file for OpenSSL, used during the generation of the SSL certificate.
 - **`requirements.txt`**: List of all the dependencies required for the project.
+- **`dbConnection.py`**: Initializes database connection and creates basic `Users` and `Messages` tables.
 - **`server.py`**: Server code that handles client connections, issues JWT tokens, and verifies them.
 
-## Install Dependencies:
+## Setup:
+
+Install python requirements:
 
    ```bash
    pip install -r requirements.txt
+   ```
+
+Definne environment variables in `.env`:
+   ```
+   DATABASE_URL=<your-connection-string>
    ```
 
 ### Requirements
@@ -37,6 +46,8 @@ src/
   - `os`
   - `subprocess`
   - `pyjwt`
+  - `python-dotenv`
+  - `asyncpg`
 
 ## Usage
 
@@ -69,4 +80,8 @@ If no SSL certificate and key are found in the `ssl/` directory, the server will
 ### JWT Token
 
 Each client is issued a JWT token upon connection, which is valid for 1 hour. The token is verified with each communication. If the token expires, the client will be informed.
+
+### Neon DB (PostgreSQL)
+
+Initializes database connection and creates basic `Users` and `Messages` tables on server start.
 
