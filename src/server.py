@@ -27,18 +27,17 @@ generate_ssl_cert(cert_path, key_path, config_path)
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.load_cert_chain(certfile=cert_path, keyfile=key_path)
-context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
 
 clients = []
 client_counter = 1
 
 SECRET_KEY = os.urandom(32)  # Generate once at startup
 
-async def generate_token(client_counter):
+async def generate_token(user_id):
     token = jwt.encode(
         {
-            "user_id": client_counter,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+            "user_id": user_id,
+            "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1)
         },
         SECRET_KEY,
         algorithm="HS256"
@@ -79,7 +78,7 @@ async def handle_client(reader, writer):
                 break
 
             received_data = data.decode().strip()
-            print(f'Received from client{client_id}: {received_data}')
+            print(f'Client{client_id}: {received_data}')
 
             # Verify the token
             user_id = verify_token(token)
