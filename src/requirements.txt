@@ -2,3 +2,4 @@ socket
 ssl
 os
 subprocess
+pyjwt

@@ -1,31 +1,41 @@
 import asyncio
 import ssl
-import os
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-cert_path = os.path.join(current_dir, 'ssl/cert.pem')
+async def communicate_with_server(host, port, ssl_context):
+    reader, writer = await asyncio.open_connection(host, port, ssl=ssl_context)
 
-context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-context.load_verify_locations(cert_path)
-
-async def client():
-    reader, writer = await asyncio.open_connection('localhost', 1234, ssl=context)
     try:
+        token = await reader.readline()
+        print(f"Received token from server: {token.decode().strip()}")
+
         while True:
-            msg = input('send: ')
-            writer.write(msg.encode())
-            await writer.drain()
-            data = await reader.read(1024)
-            if not data:
-                print('Connection closed by server')
+            message = input("Enter message to send to the server (or 'exit' to quit): ")
+            if message.lower() == 'exit':
                 break
-            print(f'server recieved : {data.decode()}')
+
+            # Send the message to the server
+            writer.write(message.encode())
+            await writer.drain()
+
+            response = await reader.readline()
+            print(f"Server: {response.decode().strip()}")
+
     except ConnectionError as e:
-        print(f"Connection error occurred: {e}")
+        print(f"Connection error: {e}")
     finally:
+        print("Closing the connection...")
         writer.close()
         await writer.wait_closed()
-        print("Client is shut down")
+
+def main():
+    host = 'localhost'
+    port = 1234
+
+    ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    ssl_context.check_hostname = False  # Not checking hostname for local connection
+    ssl_context.verify_mode = ssl.CERT_NONE  # Not verifying server certificate for local testing
+
+    asyncio.run(communicate_with_server(host, port, ssl_context))
 
 if __name__ == "__main__":
-    asyncio.run(client())
+    main()
