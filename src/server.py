@@ -4,6 +4,7 @@ import os
 import subprocess
 import jwt
 import datetime
+from dbConnection import create_db_pool ,initialize_database
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 cert_path = os.path.join(current_dir, 'ssl/cert.pem')
@@ -102,10 +103,14 @@ async def handle_client(reader, writer):
         print(f"Connection with client{client_id} closed")
 
 async def main():
+    await initialize_database()
+    await create_db_pool()
     server = await asyncio.start_server(handle_client, 'localhost', 1234, ssl=context)
     async with server:
         print("Server is listening on port 1234...")
         await server.serve_forever()
+
+
 
 if __name__ == "__main__":
     asyncio.run(main())
