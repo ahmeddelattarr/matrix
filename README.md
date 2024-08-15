@@ -58,3 +58,15 @@ python client.py
 ```
 
 The client will connect to the server over SSL, receive a JWT token, and then send messages to the server. The server will verify the JWT token with each message.
+
+## Process
+
+
+### SSL Certificate
+
+If no SSL certificate and key are found in the `ssl/` directory, the server will generate them automatically using the OpenSSL configuration specified in `openssl.cnf`.
+
+### JWT Token
+
+Each client is issued a JWT token upon connection, which is valid for 1 hour. The token is verified with each communication. If the token expires, the client will be informed.
+
