@@ -3,7 +3,7 @@ import subprocess
 import jwt
 import pytest
 import pytest_mock
-import datetime
+from datetime import datetime, timezone, timedelta
 
 from server import generate_ssl_cert,generate_token,verify_token,SECRET_KEY
 
@@ -66,7 +66,7 @@ def test_subprocess_failure(mocker):
     #JWT TESTING
 
 def test_generate_token():
-    exp_condition=datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    exp_condition=datetime.now(tz=timezone.utc) + timedelta(hours=1)
 
     exp_time=int(exp_condition.timestamp())
 
@@ -85,7 +85,7 @@ def test_generate_token():
 def test_verify_token_valid():
     payload = {
         "user_id": 123,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+        "exp": datetime.now(tz=timezone.utc) + timedelta(minutes=5)
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
@@ -105,7 +105,7 @@ def test_verify_token_unexpected_error(mocker):
     # Simulate an unexpected error during jwt.decode
     mocker.patch('server.jwt.decode', side_effect=Exception("Unexpected error"))
 
-    token = jwt.encode({"user_id": 123, "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=5)}, SECRET_KEY, algorithm="HS256")
+    token = jwt.encode({"user_id": 123, "exp":  datetime.now(tz=timezone.utc) + timedelta(minutes=5)}, SECRET_KEY, algorithm="HS256")
 
     result = verify_token(token)
 
