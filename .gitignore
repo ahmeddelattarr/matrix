@@ -1,2 +1,4 @@
 src/ssl/
 src/.env
+.idea
+.pytest_cache

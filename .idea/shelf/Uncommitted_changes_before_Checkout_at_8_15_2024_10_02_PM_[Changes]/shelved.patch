@@ -1,0 +1,64 @@
+Index: src/server.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import asyncio\r\nimport ssl\r\nimport os\r\nimport subprocess\r\nimport jwt\r\nimport datetime\r\n\r\ncurrent_dir = os.path.dirname(os.path.abspath(__file__))\r\ncert_path = os.path.join(current_dir, 'ssl/cert.pem')\r\nkey_path = os.path.join(current_dir, 'ssl/key.pem')\r\nconfig_path = os.path.join(current_dir, 'openssl.cnf')\r\n\r\ndef generate_ssl_cert(cert_path, key_path, config_path):\r\n    if not os.path.exists(cert_path) or not os.path.exists(key_path):\r\n        print(\"Generating SSL certificate and key...\")\r\n        subprocess.run(['openssl', 'genrsa', '-out', key_path, '2048'])\r\n        subprocess.run(['openssl', 'req', '-new', '-key', key_path, '-out', 'csr.pem', '-config', config_path])\r\n        subprocess.run(['openssl', 'x509', '-req', '-days', '365', '-in', 'csr.pem', '-signkey', key_path, '-out', cert_path, '-extensions', 'req_ext', '-extfile', config_path])\r\n        os.remove('csr.pem')\r\n        print(\"SSL certificate and key generated.\")\r\n    else:\r\n        print(\"SSL certificate and key already exist.\")\r\n\r\nos.makedirs(os.path.join(current_dir, 'ssl'), exist_ok=True)\r\n\r\ngenerate_ssl_cert(cert_path, key_path, config_path)\r\n\r\ncontext = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)\r\ncontext.load_cert_chain(certfile=cert_path, keyfile=key_path)\r\n\r\nclients = []\r\nclient_counter = 1\r\n\r\nSECRET_KEY = os.urandom(32)  # Generate once at startup\r\n\r\nasync def generate_token(client_counter):\r\n    token = jwt.encode(\r\n        {\r\n            \"user_id\": client_counter,\r\n            \"exp\": datetime.datetime.utcnow() + datetime.timedelta(hours=1)\r\n        },\r\n        SECRET_KEY,\r\n        algorithm=\"HS256\"\r\n    )\r\n    return token\r\n\r\n\r\nasync def handle_client(reader, writer):\r\n    global client_counter\r\n    client_id = client_counter\r\n    client_counter += 1\r\n    clients.append((reader, writer))\r\n    addr = writer.get_extra_info('peername')\r\n    print(f\"Connection from {addr} has been established as client{client_id}!\")\r\n\r\n    try:\r\n        token = await generate_token(client_id)\r\n        print(f\"Generated JWT for client{client_id}: {token}\")\r\n        writer.write(f\"your token :{token}\\n\".encode())\r\n        await writer.drain()\r\n\r\n\r\n        while True:\r\n            data = await reader.read(1024)\r\n            if data==b'':\r\n                print(f\"Connection closed by client{client_id}\")\r\n                break\r\n            print(f'client{client_id}: {data.decode()}')\r\n\r\n            received_token=data.decode().strip()\r\n\r\n    except ConnectionError as e:\r\n        print(f\"Connection error occurred: {e}\")\r\n    finally:\r\n        writer.close()\r\n        await writer.wait_closed()\r\n        clients.remove((reader, writer))\r\n        print(f\"Connection with client{client_id} closed\")\r\n\r\nasync def main():\r\n    server = await asyncio.start_server(handle_client, 'localhost', 1234, ssl=context)\r\n    async with server:\r\n        print(\"Server is listening on port 1234...\")\r\n        await server.serve_forever()\r\n\r\nif __name__ == \"__main__\":\r\n    asyncio.run(main())\r\n\r\n\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/server.py b/src/server.py
+--- a/src/server.py	(revision 32ce66f1e8f9ee2404771aa3e5a4f069885c4727)
++++ b/src/server.py	(date 1723681457972)
+@@ -44,6 +44,17 @@
+     )
+     return token
+ 
++def verify_token(token):
++    try:
++        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
++        return payload['user_id']
++    except jwt.ExpiredSignatureError:
++        return "Token expired"
++    except jwt.InvalidTokenError:
++        return "Invalid token"
++    except Exception:
++        return None  # Handle any other unexpected errors
++
+ 
+ async def handle_client(reader, writer):
+     global client_counter
+@@ -56,18 +67,30 @@
+     try:
+         token = await generate_token(client_id)
+         print(f"Generated JWT for client{client_id}: {token}")
+-        writer.write(f"your token :{token}\n".encode())
++        writer.write(f"Your token: {token}\n".encode())
+         await writer.drain()
+ 
+-
+         while True:
+             data = await reader.read(1024)
+-            if data==b'':
++            if data == b'':
+                 print(f"Connection closed by client{client_id}")
+                 break
+-            print(f'client{client_id}: {data.decode()}')
++
++            received_data = data.decode().strip()
++            print(f'Received from client{client_id}: {received_data}')
+ 
+-            received_token=data.decode().strip()
++            # Verify the token
++            user_id = verify_token(token)
++            print(f"Token verification result for client{client_id}: {user_id}")
++
++            if isinstance(user_id, int):
++                response = f"Token is valid for user_id: {user_id}\n"
++            else:
++                response = f"{user_id}\n"  # This will be either "Token expired" or "Invalid token"
++
++            print(f"Sending response to client{client_id}: {response.strip()}")
++            writer.write(response.encode())
++            await writer.drain()
+ 
+     except ConnectionError as e:
+         print(f"Connection error occurred: {e}")
