@@ -4,7 +4,7 @@ import os
 import subprocess
 import jwt
 import datetime
-from dbConnection import initialize_database
+from dbConnection import initialize_database, register_user
 
 connection_string = os.getenv('DATABASE_URL')
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -61,7 +61,7 @@ def verify_token(token):
 
 async def handle_client(reader, writer):
     global client_counter
-    client_id = client_counter
+    client_id = ''
     client_counter += 1
     clients.append((reader, writer))
     addr = writer.get_extra_info('peername')
@@ -71,7 +71,16 @@ async def handle_client(reader, writer):
         token = await generate_token(client_id)
         print(f"Generated JWT for client{client_id}: {token}")
         writer.write(f"Your token: {token}\n".encode())
+
+        auth_data = await reader.read(1024)
+        username, password = auth_data.decode().strip().split(':')
+        await register_user(username, password)
+        # user = await get_user(username)
+        # TODO: user_id = await register_user(username, password)
+        # writer.write(f"{user} has been registered!")
+
         await writer.drain()
+
 
         while True:
             data = await reader.read(1024)
@@ -80,18 +89,18 @@ async def handle_client(reader, writer):
                 break
 
             received_data = data.decode().strip()
-            print(f'Client{client_id}: {received_data}')
+            print(f'{username}: {received_data}')
 
             # Verify the token
             user_id = verify_token(token)
-            print(f"Token verification result for client{client_id}: {user_id}")
+            print(f"Token verification result for {username}: {user_id}")
 
             if isinstance(user_id, int):
                 response = f"Token is valid for user_id: {user_id}\n"
             else:
                 response = f"{user_id}\n"  # This will be either "Token expired" or "Invalid token"
 
-            print(f"Sending response to client{client_id}: {response.strip()}")
+            print(f"Sending response to {username}: {response.strip()}")
             writer.write(response.encode())
             await writer.drain()
 
