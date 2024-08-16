@@ -1,10 +1,13 @@
 import os
 import subprocess
+import jwt
 import pytest
 import pytest_mock
+import datetime
+
+from server import generate_ssl_cert,generate_token,verify_token,SECRET_KEY
 
 
-from server import generate_ssl_cert
 
 def test_generate_ssl_cert_files_exist(mocker):
     # Mock os.path.exists to return True for both cert and key paths
@@ -59,3 +62,51 @@ def test_subprocess_failure(mocker):
 
     # Assert that os.remove was never called
     mock_remove.assert_not_called()
+
+    #JWT TESTING
+
+def test_generate_token():
+    exp_condition=datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+
+    exp_time=int(exp_condition.timestamp())
+
+    pay_load= {
+            "user_id": 123,
+            "exp":exp_time
+        }
+    token=jwt.encode(pay_load,SECRET_KEY, algorithm="HS256")
+
+    decoded =jwt.decode(token,SECRET_KEY,algorithms=['HS256'],options={"verify_exp": False})
+
+    assert decoded["user_id"]==123
+    assert decoded["exp"]==exp_time
+
+
+def test_verify_token_valid():
+    payload = {
+        "user_id": 123,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+    user_id = verify_token(token)
+
+    assert user_id == 123
+
+
+def test_verify_token_invalid():
+    invalid_token = "this.is.not.a.jwt.token"
+
+    result = verify_token(invalid_token)
+
+    assert result == "Invalid token"
+
+def test_verify_token_unexpected_error(mocker):
+    # Simulate an unexpected error during jwt.decode
+    mocker.patch('server.jwt.decode', side_effect=Exception("Unexpected error"))
+
+    token = jwt.encode({"user_id": 123, "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=5)}, SECRET_KEY, algorithm="HS256")
+
+    result = verify_token(token)
+
+    assert result is None
