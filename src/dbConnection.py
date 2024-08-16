@@ -7,6 +7,7 @@ load_dotenv()
 connection_string = os.getenv('DATABASE_URL')
 
 async def initialize_database():
+    global conn
     conn = await asyncpg.connect(connection_string)
     await conn.execute('''
     CREATE TABLE IF NOT EXISTS Users (
@@ -30,8 +31,11 @@ async def initialize_database():
     )
     ''')
 
+async def register_user(username, password_hash):
     await conn.execute('''
-    DROP TABLE playing_with_neon;
-    ''')
+    INSERT INTO users(username, password_hash) VALUES($1, $2)
+    ''', username, password_hash)
 
-    await conn.close()
+
+# async def get_user(username):
+#     await conn.fetchrow('SELECT * FROM users WHERE username = $1', username)
