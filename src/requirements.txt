@@ -5,3 +5,5 @@ subprocess
 pyjwt
 asyncpg
 python-dotenv
+pytest
+pytest_mock
