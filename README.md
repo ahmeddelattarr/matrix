@@ -1,4 +1,4 @@
-```markdown
+
 # Matrix: Secure Asyncio Server/Client
 
 A simple, SSL-enabled server/client application written in Python using `asyncio` and `ssl`.
