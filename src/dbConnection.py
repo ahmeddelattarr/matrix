@@ -39,3 +39,10 @@ async def register_user(username, password_hash):
 
 async def get_user(username):
    await conn.fetchval('SELECT username FROM users WHERE username = $1', username)
+
+async def save_message(sender_id, receiver_id, content):
+    await conn.execute('INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)',sender_id,receiver_id,content)
+
+async def get_user_messages(user_id):
+    await conn.execute('SELECT *  FROM messages WHERE sender_id = $1 OR receiver_id = $1 ORDER BY sent_at' ,user_id)
+
