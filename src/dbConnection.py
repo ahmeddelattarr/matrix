@@ -37,5 +37,5 @@ async def register_user(username, password_hash):
     ''', username, password_hash)
 
 
-# async def get_user(username):
-#     await conn.fetchrow('SELECT * FROM users WHERE username = $1', username)
+async def get_user(username):
+   await conn.fetchval('SELECT username FROM users WHERE username = $1', username)

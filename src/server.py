@@ -4,7 +4,7 @@ import os
 import subprocess
 import jwt
 import datetime
-from dbConnection import initialize_database, register_user
+from dbConnection import initialize_database, register_user,get_user
 
 connection_string = os.getenv('DATABASE_URL')
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -39,7 +39,7 @@ async def generate_token(user_id):
     token = jwt.encode(
         {
             "user_id": user_id,
-            "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1)
+            "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
         },
         SECRET_KEY,
         algorithm="HS256"
@@ -75,9 +75,9 @@ async def handle_client(reader, writer):
         auth_data = await reader.read(1024)
         username, password = auth_data.decode().strip().split(':')
         await register_user(username, password)
-        # user = await get_user(username)
-        # TODO: user_id = await register_user(username, password)
-        # writer.write(f"{user} has been registered!")
+        user = await get_user(username)
+        #user_id = await register_user(username, password)
+        #writer.write(f"{user} has been registered!")
 
         await writer.drain()
 
