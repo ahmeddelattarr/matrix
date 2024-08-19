@@ -23,11 +23,10 @@ async def initialize_database():
     CREATE TABLE IF NOT EXISTS Messages (
         message_id SERIAL PRIMARY KEY,
         sender_id INTEGER NOT NULL,
-        receiver_id INTEGER NOT NULL,
         content TEXT NOT NULL,
         sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (sender_id) REFERENCES Users(user_id),
-        FOREIGN KEY (receiver_id) REFERENCES Users(user_id)
+        FOREIGN KEY (sender_id) REFERENCES Users(user_id)
+        
     )
     ''')
 
@@ -40,8 +39,8 @@ async def register_user(username, password_hash):
 async def get_user(username):
    await conn.fetchval('SELECT username FROM users WHERE username = $1', username)
 
-async def save_message(sender_id, receiver_id, content):
-    await conn.execute('INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3)',sender_id,receiver_id,content)
+async def save_message(sender_id,content):
+    await conn.execute('INSERT INTO messages (sender_id,content) VALUES ($1, $2)',sender_id,content)
 
 async def get_user_messages(user_id):
     await conn.execute('SELECT *  FROM messages WHERE sender_id = $1 OR receiver_id = $1 ORDER BY sent_at' ,user_id)

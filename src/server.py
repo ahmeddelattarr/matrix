@@ -4,7 +4,7 @@ import os
 import subprocess
 import jwt
 import datetime
-from dbConnection import initialize_database, register_user,get_user
+from dbConnection import initialize_database, register_user,get_user ,save_message
 
 connection_string = os.getenv('DATABASE_URL')
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,7 +31,7 @@ context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.load_cert_chain(certfile=cert_path, keyfile=key_path)
 
 clients = []
-client_counter = 1
+client_counter = 0
 
 SECRET_KEY = os.urandom(32)  # Generate once at startup
 
@@ -88,6 +88,7 @@ async def handle_client(reader, writer):
 
             received_data = data.decode().strip()
             print(f'{username}: {received_data}')
+           
 
             # Verify the token
             verified_user_id = verify_token(token)
@@ -95,6 +96,9 @@ async def handle_client(reader, writer):
 
             if isinstance(verified_user_id, int):
                 response = f"Token is valid for user_id: {verified_user_id}\n"
+
+                await save_message(verified_user_id,received_data)
+
             else:
                 response = f"{verified_user_id}\n"  # This will be either "Token expired" or "Invalid token"
 
