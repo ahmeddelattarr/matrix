@@ -35,6 +35,10 @@ async def register_user(username, password_hash):
     INSERT INTO users(username, password_hash) VALUES($1, $2)
     ''', username, password_hash)
 
+async def get_the_last_id():
+    last_id = await conn.fetchval('SELECT user_id FROM users WHERE user_id = (SELECT MAX(user_id) FROM Users)')
+    return last_id
+
 
 async def get_user(username):
    await conn.fetchval('SELECT username FROM users WHERE username = $1', username)

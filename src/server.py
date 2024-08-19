@@ -4,7 +4,7 @@ import os
 import subprocess
 import jwt
 import datetime
-from dbConnection import initialize_database, register_user,get_user ,save_message
+from dbConnection import initialize_database, register_user,get_user ,save_message,get_the_last_id
 
 connection_string = os.getenv('DATABASE_URL')
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -30,8 +30,7 @@ generate_ssl_cert(cert_path, key_path, config_path)
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.load_cert_chain(certfile=cert_path, keyfile=key_path)
 
-clients = []
-client_counter = 0
+
 
 SECRET_KEY = os.urandom(32)  # Generate once at startup
 
@@ -60,10 +59,12 @@ def verify_token(token):
 
 
 async def handle_client(reader, writer):
-    global client_counter
-    client_counter += 1
-    client_id = client_counter
-    clients.append((reader, writer))
+
+
+    client_id =await get_the_last_id()+1
+
+
+
     addr = writer.get_extra_info('peername')
     print(f"Connection from {addr} has been established as client{client_id}!")
 
@@ -99,6 +100,8 @@ async def handle_client(reader, writer):
 
                 await save_message(verified_user_id,received_data)
 
+
+
             else:
                 response = f"{verified_user_id}\n"  # This will be either "Token expired" or "Invalid token"
 
@@ -111,7 +114,7 @@ async def handle_client(reader, writer):
     finally:
         writer.close()
         await writer.wait_closed()
-        clients.remove((reader, writer))
+
         print(f"Connection with client{client_id} ({username}) closed")
 
 async def main():
