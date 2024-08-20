@@ -61,7 +61,7 @@ def verify_token(token):
 async def handle_client(reader, writer):
 
 
-    client_id =await get_the_last_id()+1
+    client_id = await get_the_last_id() + 1
 
 
 
@@ -89,7 +89,7 @@ async def handle_client(reader, writer):
 
             received_data = data.decode().strip()
             print(f'{username}: {received_data}')
-           
+
 
             # Verify the token
             verified_user_id = verify_token(token)
