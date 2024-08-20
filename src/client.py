@@ -8,6 +8,10 @@ async def communicate_with_server(host, port, ssl_context):
         token = await reader.readline()
         print(f"Received token from server: {token.decode().strip()}")
 
+        username = input("Enter your username: ")
+        writer.write(username.encode())
+        await writer.drain()
+
         while True:
             message = input("Enter message to send to the server (or 'exit' to quit): ")
             if message.lower() == 'exit':
