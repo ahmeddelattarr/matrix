@@ -1,6 +1,7 @@
 import asyncio
 import ssl
 
+
 async def communicate_with_server(host, port, ssl_context):
     reader, writer = await asyncio.open_connection(host, port, ssl=ssl_context)
 
@@ -16,6 +17,7 @@ async def communicate_with_server(host, port, ssl_context):
             message = input("Enter message to send to the server (or 'exit' to quit): ")
             if message.lower() == 'exit':
                 break
+
 
             # Send the message to the server
             writer.write(message.encode())

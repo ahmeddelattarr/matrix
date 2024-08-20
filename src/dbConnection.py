@@ -47,5 +47,5 @@ async def save_message(sender_id,content):
     await conn.execute('INSERT INTO messages (sender_id,content) VALUES ($1, $2)',sender_id,content)
 
 async def get_user_messages(user_id):
-    await conn.execute('SELECT *  FROM messages WHERE sender_id = $1 OR receiver_id = $1 ORDER BY sent_at' ,user_id)
+    await conn.execute('SELECT *  FROM messages WHERE sender_id = $1  ORDER BY sent_at' ,user_id)
 

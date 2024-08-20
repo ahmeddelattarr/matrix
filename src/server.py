@@ -4,15 +4,18 @@ import os
 import subprocess
 import jwt
 import datetime
-from dbConnection import initialize_database, register_user,get_user ,save_message,get_the_last_id
+from dbConnection import initialize_database, register_user, get_user, save_message, get_the_last_id
 
-connection_string = os.getenv('DATABASE_URL')
+# Paths and configuration
 current_dir = os.path.dirname(os.path.abspath(__file__))
 cert_path = os.path.join(current_dir, 'ssl/cert.pem')
 key_path = os.path.join(current_dir, 'ssl/key.pem')
 config_path = os.path.join(current_dir, 'openssl.cnf')
+connection_string = os.getenv('DATABASE_URL')
 
-def generate_ssl_cert(cert_path, key_path, config_path):
+# SSL certificate and key generation
+def generate_ssl_cert():
+    os.makedirs(os.path.join(current_dir, 'ssl'), exist_ok=True)
     if not os.path.exists(cert_path) or not os.path.exists(key_path):
         print("Generating SSL certificate and key...")
         subprocess.run(['openssl', 'genrsa', '-out', key_path, '2048'], check=True)
@@ -23,17 +26,16 @@ def generate_ssl_cert(cert_path, key_path, config_path):
     else:
         print("SSL certificate and key already exist.")
 
-os.makedirs(os.path.join(current_dir, 'ssl'), exist_ok=True)
+generate_ssl_cert()
 
-generate_ssl_cert(cert_path, key_path, config_path)
-
+# SSL context
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.load_cert_chain(certfile=cert_path, keyfile=key_path)
 
+# JWT secret key
+SECRET_KEY = os.urandom(32)
 
-
-SECRET_KEY = os.urandom(32)  # Generate once at startup
-
+# JWT token generation and verification
 async def generate_token(user_id):
     token = jwt.encode(
         {
@@ -55,25 +57,22 @@ def verify_token(token):
         return "Invalid token"
     except Exception as e:
         print(f"Unexpected error during token verification: {e}")
-        return None  # Handle any other unexpected errors
+        return None
 
-
+# Client connection handler
 async def handle_client(reader, writer):
-
-
-    client_id =await get_the_last_id()+1
-
-
-
+    client_id = await get_the_last_id() + 1
     addr = writer.get_extra_info('peername')
     print(f"Connection from {addr} has been established as client{client_id}!")
 
     try:
+        # Generate and send JWT token
         token = await generate_token(client_id)
         print(f"Generated JWT for client{client_id}: {token}")
         writer.write(f"Your token: {token}\n".encode())
         await writer.drain()
 
+        # Handle user authentication
         auth_data = await reader.read(1024)
         username, password = auth_data.decode().strip().split(':')
         user_id = await register_user(username, password)
@@ -81,6 +80,7 @@ async def handle_client(reader, writer):
         writer.write(f"{username} has been registered!\n".encode())
         await writer.drain()
 
+        # Handle client messages
         while True:
             data = await reader.read(1024)
             if data == b'':
@@ -89,7 +89,6 @@ async def handle_client(reader, writer):
 
             received_data = data.decode().strip()
             print(f'{username}: {received_data}')
-           
 
             # Verify the token
             verified_user_id = verify_token(token)
@@ -97,11 +96,7 @@ async def handle_client(reader, writer):
 
             if isinstance(verified_user_id, int):
                 response = f"Token is valid for user_id: {verified_user_id}\n"
-
-                await save_message(verified_user_id,received_data)
-
-
-
+                await save_message(verified_user_id, received_data)
             else:
                 response = f"{verified_user_id}\n"  # This will be either "Token expired" or "Invalid token"
 
@@ -114,17 +109,15 @@ async def handle_client(reader, writer):
     finally:
         writer.close()
         await writer.wait_closed()
-
         print(f"Connection with client{client_id} ({username}) closed")
 
+# Main entry point
 async def main():
     await initialize_database()
     server = await asyncio.start_server(handle_client, 'localhost', 1234, ssl=context)
     async with server:
         print("Server is listening on port 1234...")
         await server.serve_forever()
-
-
 
 if __name__ == "__main__":
     asyncio.run(main())
