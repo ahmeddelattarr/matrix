@@ -3,7 +3,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="src/logo.png">
-  <img alt="tiny corp logo" src="src/logo.png" width="10%" height="10%">
+  <img alt="tiny corp logo" src="src/logo.png" width="50%" height="50%">
 </picture>
 
 A simple, SSL-enabled server/client application written in Python using `asyncio` and `ssl`.
