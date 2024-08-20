@@ -61,7 +61,9 @@ def verify_token(token):
 
 # Client connection handler
 async def handle_client(reader, writer):
+
     client_id = await get_the_last_id() + 1
+
     addr = writer.get_extra_info('peername')
     print(f"Connection from {addr} has been established as client{client_id}!")
 
@@ -89,6 +91,7 @@ async def handle_client(reader, writer):
 
             received_data = data.decode().strip()
             print(f'{username}: {received_data}')
+
 
             # Verify the token
             verified_user_id = verify_token(token)
