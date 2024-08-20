@@ -1,6 +1,11 @@
 
 # Matrix: Secure Asyncio Server/Client
 
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="src/logo.png">
+  <img alt="tiny corp logo" src="src/logo.png" width="10%" height="10%">
+</picture>
+
 A simple, SSL-enabled server/client application written in Python using `asyncio` and `ssl`.
 
 ## Table of Contents
