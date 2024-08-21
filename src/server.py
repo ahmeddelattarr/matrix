@@ -4,7 +4,9 @@ import os
 import subprocess
 import jwt
 import datetime
+import hashlib
 from dbConnection import initialize_database, register_user, get_user, save_message, get_the_last_id
+
 
 # Paths and configuration
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -61,7 +63,9 @@ def verify_token(token):
 
 # Client connection handler
 async def handle_client(reader, writer):
+
     client_id = await get_the_last_id() + 1
+
     addr = writer.get_extra_info('peername')
     print(f"Connection from {addr} has been established as client{client_id}!")
 
@@ -75,7 +79,8 @@ async def handle_client(reader, writer):
         # Handle user authentication
         auth_data = await reader.read(1024)
         username, password = auth_data.decode().strip().split(':')
-        user_id = await register_user(username, password)
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        user_id = await register_user(username, hashed_password)
         user = await get_user(username)
         writer.write(f"{username} has been registered!\n".encode())
         await writer.drain()
@@ -89,6 +94,7 @@ async def handle_client(reader, writer):
 
             received_data = data.decode().strip()
             print(f'{username}: {received_data}')
+
 
             # Verify the token
             verified_user_id = verify_token(token)
