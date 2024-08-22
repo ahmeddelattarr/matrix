@@ -1,10 +1,14 @@
 
 # Matrix: Secure Asyncio Server/Client
 
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="src/logo.png">
-  <img alt="tiny corp logo" src="src/logo.png" width="50%" height="50%">
+&ensp;
+
+<picture style="margin-bottom: 10px;">
+  <source media="(prefers-color-scheme: light)" srcset="https://mouseflow.com/wp-content/uploads/2022/01/privacy-shield.svg">
+  <img alt="tiny corp logo" src="https://mouseflow.com/wp-content/uploads/2022/01/privacy-shield.svg" width="100%">
 </picture>
+
+&ensp;
 
 A simple, SSL-enabled server/client application written in Python using `asyncio` and `ssl`.
 
