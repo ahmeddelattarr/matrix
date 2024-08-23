@@ -7,7 +7,7 @@ async def communicate_with_server(host, port, ssl_context):
 
     try:
         token = await reader.readline()
-        print(f"Received token from server: {token.decode().strip()}")
+        print(f'Received token from server: {token.decode().strip()}')
 
         username = input("Enter your username and password separated by a ':': ")
         writer.write(username.encode())
@@ -15,25 +15,25 @@ async def communicate_with_server(host, port, ssl_context):
 
         while True:
             message = input("Enter message to send to the server (or 'exit' to quit): ")
-            if message.lower() == "exit":
+            if message.lower() == 'exit':
                 break
 
             writer.write(message.encode())
             await writer.drain()
 
             response = await reader.readline()
-            print(f"Server: {response.decode().strip()}")
+            print(f'Server: {response.decode().strip()}')
 
     except ConnectionError as e:
-        print(f"Connection error: {e}")
+        print(f'Connection error: {e}')
     finally:
-        print("Closing the connection...")
+        print('Closing the connection...')
         writer.close()
         await writer.wait_closed()
 
 
 def main():
-    host = "localhost"
+    host = 'localhost'
     port = 1234
 
     ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
@@ -45,5 +45,5 @@ def main():
     asyncio.run(communicate_with_server(host, port, ssl_context))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

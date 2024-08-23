@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-connection_string = os.getenv("DATABASE_URL")
+connection_string = os.getenv('DATABASE_URL')
 
 
 async def initialize_database():
@@ -43,22 +43,22 @@ async def register_user(username, password_hash):
 
 async def get_the_last_id():
     last_id = await conn.fetchval(
-        "SELECT user_id FROM users WHERE user_id = (SELECT MAX(user_id) FROM Users)"
+        'SELECT user_id FROM users WHERE user_id = (SELECT MAX(user_id) FROM Users)'
     )
     return last_id
 
 
 async def get_user(username):
-    await conn.fetchval("SELECT username FROM users WHERE username = $1", username)
+    await conn.fetchval('SELECT username FROM users WHERE username = $1', username)
 
 
 async def save_message(sender_id, content):
     await conn.execute(
-        "INSERT INTO messages (sender_id,content) VALUES ($1, $2)", sender_id, content
+        'INSERT INTO messages (sender_id,content) VALUES ($1, $2)', sender_id, content
     )
 
 
 async def get_user_messages(user_id):
     await conn.execute(
-        "SELECT *  FROM messages WHERE sender_id = $1  ORDER BY sent_at", user_id
+        'SELECT *  FROM messages WHERE sender_id = $1  ORDER BY sent_at', user_id
     )
