@@ -17,6 +17,10 @@ connection_string = os.getenv('DATABASE_URL')
 
 # SSL certificate and key generation
 def generate_ssl_cert():
+    if os.getenv('CI', 'false') == 'true':
+        print("Skipping SSL generation in CI environment")
+        return
+    
     os.makedirs(os.path.join(current_dir, 'ssl'), exist_ok=True)
     if not os.path.exists(cert_path) or not os.path.exists(key_path):
         print("Generating SSL certificate and key...")
