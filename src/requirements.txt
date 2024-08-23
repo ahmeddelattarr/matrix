@@ -1,9 +1,5 @@
-socket
-ssl
-os
-subprocess
-pyjwt
+pyJWT
 asyncpg
 python-dotenv
 pytest
-pytest_mock
+pytest-mock
