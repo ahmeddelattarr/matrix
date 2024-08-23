@@ -38,6 +38,7 @@ src/
 │   ├── cert.pem
 │   ├── key.pem
 ├── client.py
+├── testing.py
 ├── openssl.cnf
 ├── requirements.txt
 ├── dbConnection.py
@@ -50,6 +51,7 @@ src/
 - `requirements.txt`: Project dependencies
 - `dbConnection.py`: Database connection and table initialization
 - `server.py`: Main server code handling connections, JWT, and verification
+- `testing.py`: Main testing, runs with `pytest`
 
 ## Requirements
 - Python 3.8+
@@ -71,7 +73,7 @@ src/
 
 2. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   bin/install
    ```
 
 3. Set up environment variables:
@@ -83,7 +85,7 @@ src/
 ## Usage
 ### Starting the Server
 ```bash
-python server.py
+bin/start
 ```
 
 ### Running the Client
@@ -112,7 +114,7 @@ The server automatically generates SSL certificates if not present in the `ssl/`
 - Automatic certificate generation enhances ease of deployment
 
 ## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request. Run `ruff check` and `pytest` before pushing.
 
 ## License
 This project is licensed under the [MIT License](LICENSE).
