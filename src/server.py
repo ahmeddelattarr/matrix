@@ -4,7 +4,9 @@ import os
 import subprocess
 import jwt
 import datetime
+import bcrypt
 from dbConnection import initialize_database, register_user, get_user, save_message, get_the_last_id
+
 
 # Paths and configuration
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -77,7 +79,12 @@ async def handle_client(reader, writer):
         # Handle user authentication
         auth_data = await reader.read(1024)
         username, password = auth_data.decode().strip().split(':')
-        user_id = await register_user(username, password)
+
+        #password hashing
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password.encode(), salt)
+        hashed_password_str = hashed_password.decode('utf-8')  # Convert bytes to string
+        user_id = await register_user(username, hashed_password_str)
         user = await get_user(username)
         writer.write(f"{username} has been registered!\n".encode())
         await writer.drain()
