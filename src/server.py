@@ -69,10 +69,6 @@ def generate_ssl_cert():
     else:
         print('SSL certificate and key already exist.')
 
-
-generate_ssl_cert()
-
-
 if os.getenv('CI', 'false') == 'true':
     print('Skipping SSL generation in CI environment')
 else:
@@ -172,4 +168,13 @@ async def main():
 
 
 if __name__ == '__main__':
+    print(r"""
+     __  __    _  _____ ____  _____  __
+    |  \/  |  / \|_   _|  _ \|_ _\ \/ /
+    | |\/| | / _ \ | | | |_) || | \  / 
+    | |  | |/ ___ \| | |  _ < | | /  \ 
+    |_|  |_/_/   \_\_| |_| \_\___/_/\_\
+
+    """)
+    generate_ssl_cert()
     asyncio.run(main())
