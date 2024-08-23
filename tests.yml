@@ -1,4 +1,5 @@
-name: testing
+name: testing123
+
 'on':
   push:
     branches:
@@ -19,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f src/requirements.txt ]; then pip install -r src/requirements.txt; fi
       - name: Test with pytest
         run: |
           pytest
