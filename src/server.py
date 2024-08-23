@@ -35,8 +35,12 @@ def generate_ssl_cert():
 generate_ssl_cert()
 
 # SSL context
-context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-context.load_cert_chain(certfile=cert_path, keyfile=key_path)
+
+if os.getenv('CI', 'false') == 'true':
+    print("Skipping SSL generation in CI environment")
+else:
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(certfile=cert_path, keyfile=key_path)
 
 # JWT secret key
 SECRET_KEY = os.urandom(32)
